@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+      name="viewport"
+    />
+
+    <title>{% block title %} {% endblock %}</title>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+  </head>
+
+  <body>
+    <!-- create the navigation bar on top of the page -->
+    <nav class="navbar navbar-expand-md navbar-light bg-light">
+      <a class="navbar-brand" href="/"> projectP </a>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav"></ul>
+      </div>
+      <div class="topnav-right">
+        <a class="nav-link" href="/blog">Blog</a>
+      </div>
+      <img width="30" height="30" src="/img/hamburger_icon.svg" />
+    </nav>
+
+    <div class="container">
+      <!-- nachfolger Block wir mit Inhalt ersetzt -->
+      {% block content %} {% endblock %}
+    </div>
+  </body>
+</html>
