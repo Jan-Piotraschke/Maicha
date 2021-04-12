@@ -1,0 +1,2 @@
+[global.databases]
+sqlite_logs = { url = "test.sqlite", pool_size = 20}

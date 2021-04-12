@@ -1,0 +1,212 @@
+@code_type rust .rs
+
+@title The App in Rust
+
+@s Code structure
+
+--- src/main.rs
+@{Usage of makros}
+@{Package import}
+
+@{db connection}
+
+@{struct for login}
+
+@{get login}
+@{post login}
+@{get logout}
+
+@{get index page}
+@{get blog page}
+
+// helper functions to check if a criterium is met
+@{check if login data is valid}
+@{check if user is locked in}
+
+/* COORDINATE the web app
+
+the function which coordinates the web application with it`s settings
+*/
+fn main() {
+    rocket::ignite()
+        .attach(Template::fairing())
+        .attach(LogsDbConn::fairing())
+        .mount("/", routes![index, blog_form, login_form, login_verify, logout])
+        .mount("/", StaticFiles::from(concat!(env!("CARGO_MANIFEST_DIR"), "/static"))) // include usage of static files
+        .launch();
+}
+---
+
+@s Code functions
+
+We have to include some makros
+
+--- Usage of makros
+#![feature(proc_macro_hygiene, decl_macro)]
+#[macro_use] extern crate rocket;
+#[macro_use] extern crate rocket_contrib;
+---
+
+Following package gets imported
+
+--- Package import
+use rocket::http::{Cookie, Cookies};
+use rocket::request::Form;
+use rocket::response::Redirect;
+use rocket_contrib::templates::Template;
+use rocket_contrib::serve::StaticFiles;
+use rocket_contrib::databases::diesel;
+use std::collections::HashMap;
+---
+
+
+Connect to Sqlite with *diesel*
+
+--- db connection
+#[database("sqlite_logs")]
+struct LogsDbConn(diesel::SqliteConnection);
+---
+
+We define which data from the login process gets processed in the application
+
+--- struct for login
+/*
+struct --> data / input structure
+*/
+#[derive(FromForm)]
+struct LoginData {
+    username: String,
+    password: String,
+}
+---
+
+
+First we create the get function for the login process ...
+
+--- get login
+#[get("/login")]
+fn login_form(
+    cookies: Cookies
+) -> Result<Template, Redirect> {
+    // Redirect already logged in user to the index page
+    if is_user_logged_in(&cookies) {
+        Err(Redirect::found("/"))
+    } else {
+        let context: HashMap<&str, &str> = HashMap::new();
+
+        Ok(Template::render("login", context))
+    }
+}
+---
+
+and give a response to the user whether the login was successful
+
+--- post login
+/*
+the input of the Jinja-like templates are defined in a `struct`
+
+To tell Rocket that you're expecting request body data, the data route
+argument is used with the name of the parameter in the request handler
+*/
+#[post("/login", data = "<login_data>")]
+fn login_verify(
+    login_data: Form<LoginData>,
+    mut cookies: Cookies
+) -> Result<Template, Redirect> {
+    // Redirect already logged in user to the index page
+    if is_user_logged_in(&cookies) {
+        Err(Redirect::to("/"))
+    } else if !is_login_data_valid(&login_data) {
+        let mut context = HashMap::new();
+        context.insert("error", "Invalid credentials!");
+        context.insert("username", &login_data.username);
+
+        Ok(Template::render("login", context))
+    } else {
+        cookies.add(Cookie::new("username", login_data.into_inner().username));
+
+        Err(Redirect::to("/"))
+    }
+}
+---
+
+The program checks whether the login data is valid
+
+--- check if login data is valid
+fn is_login_data_valid(login_data: &Form<LoginData>) -> bool {
+    login_data.username == "JNP" && login_data.password != ""
+}
+---
+
+and if the user is already locked in
+
+--- check if user is locked in
+fn is_user_logged_in(cookies: &Cookies) -> bool {
+    cookies.get("username").is_some()
+}
+---
+
+
+The user has to be able to logout. With that, no web content is editable
+
+--- get logout
+#[get("/logout")]
+fn logout(
+    mut cookies: Cookies
+) -> Redirect {
+    cookies.remove(Cookie::named("username"));
+
+    Redirect::to("/login")
+}
+---
+
+Now we create the index page of *maicha*
+
+--- get index page
+/*
+Functions can return values to the code that calls them. We don’t name
+return values, but we do declare their type after an arrow (->).
+In Rust, the return value of the function is synonymous with the value
+of the final expression in the block of the body of a function
+*/
+#[get("/")]
+fn index(
+    cookies: Cookies
+) -> Result<Template, Redirect> {
+    // Redirect unauthorized users to the login page
+    if !is_user_logged_in(&cookies) {
+        Err(Redirect::found("/login"))
+    } else {
+        let mut context = HashMap::new();
+        context.insert("username", cookies.get("username").unwrap().value());
+
+        Ok(Template::render("index", context))
+    }
+}
+---
+
+The web page contains a beautiful blog page
+
+--- get blog page
+#[get("/blog")]
+fn blog_form(
+    cookies: Cookies
+) -> Result<Template, Redirect> {
+    // Redirect unauthorized users to the login page
+    if !is_user_logged_in(&cookies) {
+        Err(Redirect::found("/login"))
+    } else {
+        let mut context = HashMap::new();
+        context.insert("username", cookies.get("username").unwrap().value());
+        Ok(Template::render("blog", context))
+    }
+}
+---
+
+That's it! <br />
+
+@s Run *maicha*
+
+Compile the program with `rustc rust_hello.rs`<br />
+Run the program with `./rust_hello` <br /><br />
+Or simply run the programm with `cargo run`
