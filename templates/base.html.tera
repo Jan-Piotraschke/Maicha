@@ -17,7 +17,7 @@
   <body>
     <!-- create the navigation bar on top of the page -->
     <nav class="navbar navbar-expand-md navbar-light bg-light">
-      <a class="navbar-brand" href="/"> projectP </a>
+      <a class="navbar-brand" href="/"> maicha </a>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav"></ul>
       </div>

@@ -1,0 +1,7 @@
+@book
+@title maicha
+
+This is a book of the *maicha* software.  <br />
+It contains all the code files:
+
+[Main](src/main.lit)
