@@ -32,7 +32,7 @@ fn main() {
         .attach(Template::fairing())
         .attach(LogsDbConn::fairing())
         .mount("/", routes![index, blog_form, login_form, login_verify, logout])
-        .mount("/", StaticFiles::from(concat!(env!("CARGO_MANIFEST_DIR"), "/static"))) // include usage of static files
+        .mount("/", StaticFiles::from(concat!(env!("CARGO_MANIFEST_DIR"), "/src/view/static"))) // include usage of static files
         .launch();
 }
 ---
